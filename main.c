@@ -15,13 +15,13 @@ int main(void){
         if (result > 5){
             gpio_write(25);
         }
-        delay_ms(10);
+        delay_ms(500);
         gpio_write(16);    
 
         result = asm_add(3, 1);
         if (result < 5){
             gpio_clear(25);
         }
-        delay_ms(20);
+        delay_ms(500);
     }
 }

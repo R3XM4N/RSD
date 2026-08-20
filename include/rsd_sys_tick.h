@@ -10,7 +10,7 @@
 #define SYST_RVR  (*(volatile uint32_t*)(0xE000E014)) // Reload Value aka starting number (24 bit down counter so)
 #define SYST_CVR  (*(volatile uint32_t*)(0xE000E018)) // Current Value
 
-void SysTick_Handler(void);
+void isr_systick(void);
 void sys_tick_init(uint32_t cpu_hz);
 void delay_ms(uint32_t ms);
 

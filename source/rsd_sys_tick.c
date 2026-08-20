@@ -11,11 +11,15 @@ void sys_tick_init(uint32_t cpu_hz){
 void delay_ms(uint32_t ms){
     uint32_t start = ms_ticks;
     while ((ms_ticks - start) < ms){
-        // __asm__("wfi"); //wait till interupt
+        __asm__("wfi"); //wait till interupt
     }
 }
 
 
-void SysTick_Handler(void){
+void isr_systick(void){
     ms_ticks++;
 }
+
+// void SysTick_Handler(void){
+//     ms_ticks++;
+// }
