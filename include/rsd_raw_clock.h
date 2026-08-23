@@ -1,5 +1,5 @@
-#ifndef RAW_CLOCK_H
-#define RAW_CLOCK_H
+#ifndef RSD_RAW_CLOCK_H
+#define RSD_RAW_CLOCK_H
 
 #include <stdint.h>
 
