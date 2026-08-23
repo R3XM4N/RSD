@@ -1,13 +1,70 @@
 #include "../include/rsd_uart.h"
 
 #include "../include/rsd_pin.h"
+#include "../include/rsd_reset.h"
+#include "../include/rsd_raw_clock.h"
 
+typedef struct{
+    uint8_t tx_pin;
+    uint8_t rx_pin;
+    uint8_t enabled_flag;
+} uart_conf;
 
-void uart_raw_init(uint32_t baud_rate){
+uart_conf UART0_CONF = {255, 255, 0};
+uart_conf UART1_CONF = {255, 255, 0};
 
+/// @param uart_id 0 or 1
+void private_uart_init(uint8_t uart_id, uint32_t baud_rate, const uint8_t uart_tx_pin, const uint8_t uart_rx_pin){
+    if (uart_id > 1){ return;}
+    
+    // Eyo hopefully it ain't a switchup of rx and tx
+    (*(volatile uint32_t*)(IO_BANK0_BASE + uart_tx_pin * 8 + 4)) = 2;
+    (*(volatile uint32_t*)(IO_BANK0_BASE + uart_rx_pin * 8 + 4)) = 2;
+    
+    uint32_t clock_rate = get_sys_clock_hz();
+    uint32_t divisor_x64 = (clock_rate * 4) / baud_rate;
+    
+    if (uart_id == 0){
+        UART0_IBRD = divisor_x64 >> 6;
+        UART0_FBRD = divisor_x64 & 0x3F;
+
+        UART0_LCR_H = (0x3u << 5);
+        UART0_CR = (1u << 0) | (1u << 8) | (1u << 9);
+    }
+    else if(uart_id == 1){
+        UART1_IBRD = divisor_x64 >> 6;
+        UART1_FBRD = divisor_x64 & 0x3F;
+
+        UART1_LCR_H = (0x3u << 5);
+        UART1_CR = (1u << 0) | (1u << 8) | (1u << 9);
+    }
 }
 
-/// @brief Puts char/byte into
-void uart_raw_putc(char c){
+void uart0_init(uint32_t baud_rate, const uint8_t uart_tx_pin, const uint8_t uart_rx_pin){
+    if (UART0_CONF.enabled_flag != 0){ return;}
+    if (!((uart_tx_pin == 0) || (uart_tx_pin == 12) || (uart_tx_pin == 16))){ return;}
+    if (!((uart_rx_pin == 1) || (uart_rx_pin == 13) || (uart_rx_pin == 17))){ return;}
+    reset_await(22);
 
+    private_uart_init(0, baud_rate, uart_tx_pin, uart_rx_pin);
+}
+
+void uart0_putc(char c){
+    while (UART0_FR & (1u << 5)){} // wait if no free space
+    UART0_DR = (uint32_t)c;
+}
+
+
+void uart1_init(uint32_t baud_rate, const uint8_t uart_tx_pin, const uint8_t uart_rx_pin){
+    if (UART1_CONF.enabled_flag != 0){ return;}
+    if (!((uart_tx_pin == 4) || (uart_tx_pin == 8) || (uart_tx_pin == 20))){ return;}
+    if (!((uart_rx_pin == 5) || (uart_rx_pin == 9) || (uart_rx_pin == 21))){ return;}
+    reset_await(22);
+
+    private_uart_init(1, baud_rate, uart_tx_pin, uart_rx_pin);
+}
+
+void uart1_putc(char c){
+    while (UART1_FR & (1u << 5)){} // wait if no free space
+    UART1_DR = (uint32_t)c;
 }

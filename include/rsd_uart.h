@@ -10,9 +10,19 @@
 #define UART0_FBRD   (*(volatile uint32_t*)(UART0_BASE + 0x028)) // Fractional baud divisor
 #define UART0_LCR_H  (*(volatile uint32_t*)(UART0_BASE + 0x02C)) // Line control
 #define UART0_CR     (*(volatile uint32_t*)(UART0_BASE + 0x030)) // Control register
+
+#define UART1_BASE   0x40038000u
+#define UART1_DR     (*(volatile uint32_t*)(UART1_BASE + 0x000)) // Data register
+#define UART1_FR     (*(volatile uint32_t*)(UART1_BASE + 0x018)) // Flag register
+#define UART1_IBRD   (*(volatile uint32_t*)(UART1_BASE + 0x024)) // Integer baud divisor
+#define UART1_FBRD   (*(volatile uint32_t*)(UART1_BASE + 0x028)) // Fractional baud divisor
+#define UART1_LCR_H  (*(volatile uint32_t*)(UART1_BASE + 0x02C)) // Line control
+#define UART1_CR     (*(volatile uint32_t*)(UART1_BASE + 0x030)) // Control register
  
-void uart_raw_init(uint32_t baud_rate);
-/// @brief Puts char/byte into
-void uart_raw_putc(char c);
+void uart0_init(uint32_t baud_rate, const uint8_t uart_tx_pin, const uint8_t uart_rx_pin);
+void uart0_putc(char c);
+
+void uart1_init(uint32_t baud_rate, const uint8_t uart_tx_pin, const uint8_t uart_rx_pin);
+void uart1_putc(char c);
 
 #endif

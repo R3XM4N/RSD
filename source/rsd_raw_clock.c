@@ -12,6 +12,6 @@ static uint32_t pll_sys_get_hz(void){
     return vco_freq/(postdiv1 * postdiv2);
 }
 
-uint32_t clocks_get_sys_hz(void){
+uint32_t get_sys_clock_hz(void){
     return pll_sys_get_hz();
 }

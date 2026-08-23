@@ -7,7 +7,7 @@
 int32_t asm_add(int32_t a, int32_t b);
 
 int main(void){
-    sys_tick_init(clocks_get_sys_hz());
+    sys_tick_init(get_sys_clock_hz());
     gpio_enable(25);
     gpio_enable(16);
 
