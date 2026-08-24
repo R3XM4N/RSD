@@ -8,8 +8,8 @@ int32_t asm_add(int32_t a, int32_t b);
 
 int main(void){
     sys_tick_init(get_sys_clock_hz());
-    gpio_enable(25);
-    gpio_enable(16);
+    gpio_enable_out(25);
+    gpio_enable_out(16);
 
     while (1){
         int32_t result = asm_add(3, 4);

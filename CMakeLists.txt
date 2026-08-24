@@ -17,6 +17,7 @@ add_executable(
     source/rsd_reset.c
     source/rsd_uart.c
     source/rsd_nvic.c
+    source/rsd_interrupt.c
 )
 
 pico_add_extra_outputs(rsd_pico_one)
