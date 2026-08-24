@@ -7,10 +7,20 @@ project(rsd_pico_one C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 pico_sdk_init()
 
-add_executable(rsd_pico_one main.c asm_add.s source/rsd_gpio.c source/rsd_sys_tick.c source/rsd_raw_clock.c
-    source/rsd_reset.c source/rsd_uart.c)
+add_executable(
+    rsd_pico_one
+    main.c
+    asm_add.s
+    source/rsd_gpio.c
+    source/rsd_sys_tick.c
+    source/rsd_raw_clock.c
+    source/rsd_reset.c
+    source/rsd_uart.c
+    source/rsd_nvic.c
+)
+
 pico_add_extra_outputs(rsd_pico_one)
 target_link_libraries(rsd_pico_one pico_stdlib)
 
-pico_enable_stdio_usb(rsd_pico_one 1)
-pico_enable_stdio_uart(rsd_pico_one 0)
+# pico_enable_stdio_usb(rsd_pico_one 1)
+# pico_enable_stdio_uart(rsd_pico_one 0)

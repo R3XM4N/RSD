@@ -14,9 +14,9 @@
 void gpio_enable(const uint8_t gpio_pin);
 /// @brief Sets the pin to high (1)
 /// @param gpio_pin Identifier of the desired PIN
-void gpio_write(const uint8_t gpio_pin);
+inline void gpio_write(const uint8_t gpio_pin);
 /// @brief Sets the pin to low (0)
 /// @param gpio_pin Identifier of the desired PIN
-void gpio_clear(const uint8_t gpio_pin);
+inline void gpio_clear(const uint8_t gpio_pin);
 
 #endif
