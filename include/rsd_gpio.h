@@ -26,4 +26,8 @@ void gpio_clear(const uint8_t gpio_pin);
 /// @param gpio_pin Identifier of the desired PIN
 void gpio_enable_fall_irq(const  uint8_t gpio_pin);
 
+static inline uint8_t gpio_read(const uint8_t gpio_pin){ //test
+    return ((*(volatile uint32_t*)(SIO_BASE + 0x004)) & (1u << gpio_pin)) ? 1 : 0;
+}
+
 #endif

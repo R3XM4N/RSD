@@ -3,7 +3,7 @@
 static uint8_t interrupt_enabled_flag = 0;
 
 void nvic_enable_irq(uint8_t interrupt_num){
-    void nvic_enable_interrupts();
+    nvic_enable_interrupts();
     NVIC_ISER = (1u << interrupt_num);
 }
 
