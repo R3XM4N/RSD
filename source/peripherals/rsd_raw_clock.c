@@ -1,4 +1,4 @@
-#include "../include/rsd_raw_clock.h"
+#include "../../include/peripherals/rsd_raw_clock.h"
 
 #define XOSC_FREQ_HZ 12000000u
 

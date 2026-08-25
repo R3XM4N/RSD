@@ -11,13 +11,13 @@ add_executable(
     rsd_pico_one
     main.c
     asm_add.s
-    source/rsd_gpio.c
-    source/rsd_sys_tick.c
-    source/rsd_raw_clock.c
-    source/rsd_reset.c
-    source/rsd_uart.c
-    source/rsd_nvic.c
-    source/rsd_interrupt.c
+    source/peripherals/rsd_gpio.c
+    source/interrupt/rsd_sys_tick.c
+    source/peripherals/rsd_raw_clock.c
+    source/peripherals/rsd_reset.c
+    source/peripherals/rsd_uart.c
+    source/interrupt/rsd_nvic.c
+    source/interrupt/rsd_interrupt.c
     source/os/rsd_os.c
 )
 

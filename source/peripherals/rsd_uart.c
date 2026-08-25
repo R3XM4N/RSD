@@ -1,9 +1,9 @@
-#include "../include/rsd_uart.h"
+#include "../../include/peripherals/rsd_uart.h"
 
-#include "../include/rsd_pin.h"
-#include "../include/rsd_reset.h"
-#include "../include/rsd_raw_clock.h"
-#include "../include/rsd_nvic.h"
+#include "../../include/peripherals/rsd_pin.h"
+#include "../../include/peripherals/rsd_reset.h"
+#include "../../include/peripherals/rsd_raw_clock.h"
+#include "../../include/interrupt/rsd_nvic.h"
 
 #define RSD_IRQ_UART0 20
 #define RSD_IRQ_UART1 21

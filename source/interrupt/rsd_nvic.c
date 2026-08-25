@@ -1,4 +1,4 @@
-#include "../include/rsd_nvic.h"
+#include "../../include/interrupt/rsd_nvic.h"
 
 static uint8_t interrupt_enabled_flag = 0;
 

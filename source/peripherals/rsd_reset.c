@@ -1,4 +1,4 @@
-#include "../include/rsd_reset.h"
+#include "../../include/peripherals/rsd_reset.h"
 
 void reset_await(uint8_t bit_pos){
     RESETS_RESET &= ~(1u << bit_pos);

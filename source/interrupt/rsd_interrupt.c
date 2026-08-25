@@ -1,7 +1,7 @@
-#include "../include/rsd_interrupt.h"
+#include "../../include/interrupt/rsd_interrupt.h"
 
-#include "../include/rsd_pin.h"
-#include "../include/os/rsd_os.h"
+#include "../../include/peripherals/rsd_pin.h"
+#include "../../include/os/rsd_os.h"
 
 extern volatile uint32_t ms_ticks;
 static uint32_t gpio_last_press_time = 0;

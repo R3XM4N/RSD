@@ -1,9 +1,9 @@
 #include <stdint.h>
 
-#include "include/rsd_sys_tick.h"
-#include "include/rsd_gpio.h"
-#include "include/rsd_raw_clock.h"
-#include "include/rsd_nvic.h"
+#include "include/interrupt/rsd_sys_tick.h"
+#include "include/peripherals/rsd_gpio.h"
+#include "include/peripherals/rsd_raw_clock.h"
+#include "include/interrupt/rsd_nvic.h"
 
 #include "include/os/rsd_os.h"
 int32_t asm_add(int32_t a, int32_t b);

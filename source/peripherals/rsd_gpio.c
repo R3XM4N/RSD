@@ -1,8 +1,8 @@
-#include "../include/rsd_gpio.h"
+#include "../../include/peripherals/rsd_gpio.h"
 
-#include "../include/rsd_reset.h"
-#include "../include/rsd_pin.h"
-#include "../include/rsd_nvic.h"
+#include "../../include/peripherals/rsd_reset.h"
+#include "../../include/peripherals/rsd_pin.h"
+#include "../../include/interrupt/rsd_nvic.h"
 
 void gpio_enable_out(const uint8_t gpio_pin){
     if ((gpio_pin < 23) || ((gpio_pin > 24) && (gpio_pin < 29))){

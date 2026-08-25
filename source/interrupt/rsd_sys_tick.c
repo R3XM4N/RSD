@@ -1,4 +1,4 @@
-#include "../include/rsd_sys_tick.h"
+#include "../../include/interrupt/rsd_sys_tick.h"
 
 static volatile uint32_t ms_ticks = 0;
 
