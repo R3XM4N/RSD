@@ -77,8 +77,6 @@ void uart1_putc(char c){
 void uart0_enable_rx_interrupt(void){
     UART0_IMSC |= (1u << 4) | (1u << 6); // interrupt on rx fifo data [4] and timeout on no data [6] 
     nvic_enable_irq(RSD_IRQ_UART0);
-
-    nvic_enable_interrupts();
 }
 
 void isr_uart0(void){
@@ -93,8 +91,6 @@ void isr_uart0(void){
 void uart1_enable_rx_interrupt(void){
     UART1_IMSC |= (1u << 4) | (1u << 6); // interrupt on rx fifo data [4] and timeout on no data [6] 
     nvic_enable_irq(RSD_IRQ_UART1);
-
-    nvic_enable_interrupts();
 }
 
 void isr_uart1(void){

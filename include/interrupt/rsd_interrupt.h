@@ -9,11 +9,7 @@
 
 void isr_io_bank0(void);
 
-
-
-__attribute__((aligned(256))) static uint32_t ram_vector_table[48];
 void irq_init(void);
-void irq_register();
-
+void irq_register(const uint8_t irq_numer, void (*handler)(void));
 
 #endif
