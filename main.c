@@ -14,8 +14,9 @@ int main(void){
     irq_init();
     irq_register(IO_IRQ_BANK0_NUM, isr_io_bank0);
 
-    nvic_set_pending(IO_IRQ_BANK0_NUM);
-    
+    gpio_enable_fall_irq(14);
+    // nvic_set_pending(IO_IRQ_BANK0_NUM);
+
     gpio_enable_out(16);
     gpio_enable_out(17);
     if (asm_add(5, 5) > 9){
@@ -28,7 +29,7 @@ int main(void){
     // }
     // gpio_clear(16);
     
-    // gpio_enable_fall_irq(15);
+    // 
 
     // test_call();
     while (1){
