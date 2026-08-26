@@ -14,7 +14,7 @@
 #define PADS_OD_BIT  (1u << 7)
 #define PADS_IE_BIT  (1u << 6)
 
-static void gpio_pad_enable(const uint8_t gpio_pin){
+void gpio_pad_enable(const uint8_t gpio_pin){
     reset_await(9); // PADS_BANK0 out of reset
     (*(volatile uint32_t*)PADS_GPIO_CLR(gpio_pin)) = PADS_ISO_BIT | PADS_OD_BIT;
     (*(volatile uint32_t*)PADS_GPIO_SET(gpio_pin)) = PADS_IE_BIT;

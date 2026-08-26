@@ -24,6 +24,7 @@ void gpio_write(const uint8_t gpio_pin);
 void gpio_clear(const uint8_t gpio_pin);
 /// @brief Enables falling edge itnerrupt on a pin
 /// @param gpio_pin Identifier of the desired PIN
+void gpio_pad_enable(const uint8_t gpio_pin);
 void gpio_enable_fall_irq(const  uint8_t gpio_pin);
 
 static inline uint8_t gpio_read(const uint8_t gpio_pin){ //test
