@@ -12,8 +12,8 @@ add_executable(
     main.c
     asm_add.s
     source/peripherals/rsd_gpio.c
-    # source/interrupt/rsd_sys_tick.c
-    # source/peripherals/rsd_raw_clock.c
+    source/interrupt/rsd_sys_tick.c
+    source/peripherals/rsd_raw_clock.c
     source/peripherals/rsd_reset.c
     # source/peripherals/rsd_uart.c
     # source/interrupt/rsd_nvic.c
