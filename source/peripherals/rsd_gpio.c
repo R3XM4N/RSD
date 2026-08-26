@@ -2,7 +2,7 @@
 
 #include "../../include/peripherals/rsd_reset.h"
 #include "../../include/peripherals/rsd_pin.h"
-// #include "../../include/interrupt/rsd_nvic.h"
+#include "../../include/interrupt/rsd_interrupt.h"
 
 #define PADS_BANK0_BASE      0x40038000u
 #define PADS_OFFSET(n)       (0x04u + (n) * 4u)
@@ -46,23 +46,23 @@ void gpio_clear(const uint8_t gpio_pin){
     }
 }
 
-// void private_gpio_pullup_en(const uint8_t gpio_pin){
-//     gpio_pad_enable(gpio_pin); // clears ISO, sets IE
-//     volatile uint32_t* pad_register = (volatile uint32_t*)PADS_GPIO(gpio_pin);
-//     *pad_register = (*pad_register & ~(1u << 2)) | (1u << 3) | (1u << 1); // clear pde[2], set pue[3], schmitt[1] no ie[6]
-// }
+void private_gpio_pullup_en(const uint8_t gpio_pin){
+    gpio_pad_enable(gpio_pin); // clears ISO, sets IE
+    volatile uint32_t* pad_register = (volatile uint32_t*)PADS_GPIO(gpio_pin);
+    *pad_register = (*pad_register & ~(1u << 2)) | (1u << 3) | (1u << 1); // clear pde[2], set pue[3], schmitt[1] no ie[6]
+}
 
-// void gpio_enable_fall_irq(const uint8_t gpio_pin){
-//     reset_await(6);
-//     (*(volatile uint32_t*)(IO_BANK0_BASE + (gpio_pin * 8) + 4)) = 5; //sio func 5
-//     private_gpio_pullup_en(gpio_pin);
-//     GPIO_OE_CLR = (1u << gpio_pin);
+void gpio_enable_fall_irq(const uint8_t gpio_pin){
+    reset_await(6);
+    (*(volatile uint32_t*)(IO_BANK0_BASE + (gpio_pin * 8) + 4)) = 5; //sio func 5
+    private_gpio_pullup_en(gpio_pin);
+    GPIO_OE_CLR = (1u << gpio_pin);
 
-//     uint8_t reg_idx = gpio_pin / 8;
-//     uint8_t bit_shift = (gpio_pin % 8) * 4;
+    uint8_t reg_idx = gpio_pin / 8;
+    uint8_t bit_shift = (gpio_pin % 8) * 4;
 
-//     volatile uint32_t* inte_reg = (volatile uint32_t*)(IO_BANK0_BASE + 0x100 + (reg_idx * 4));
-//     *inte_reg |= (1u << (bit_shift + 2)); // [2] bit edge low for pin
+    volatile uint32_t* inte_reg = (volatile uint32_t*)(IO_BANK0_BASE + 0x248 + (reg_idx * 4));
+    *inte_reg |= (1u << (bit_shift + 2));
 
-//     nvic_enable_irq(13);
-// }
+    nvic_enable_irq(IO_IRQ_BANK0_NUM); 
+}

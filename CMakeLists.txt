@@ -16,9 +16,9 @@ add_executable(
     source/peripherals/rsd_raw_clock.c
     source/peripherals/rsd_reset.c
     # source/peripherals/rsd_uart.c
-    # source/interrupt/rsd_nvic.c
-    # source/interrupt/rsd_interrupt.c
-    # source/os/rsd_os.c
+    source/interrupt/rsd_nvic.c
+    source/interrupt/rsd_interrupt.c
+    source/os/rsd_os.c
 )
 
 pico_add_extra_outputs(rsd_pico2w)

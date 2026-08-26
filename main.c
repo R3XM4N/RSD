@@ -3,19 +3,19 @@
 #include "include/interrupt/rsd_sys_tick.h"
 #include "include/peripherals/rsd_gpio.h"
 #include "include/peripherals/rsd_raw_clock.h"
-// #include "include/interrupt/rsd_interrupt.h"
+#include "include/interrupt/rsd_interrupt.h"
 
-// #include "include/os/rsd_os.h"
+#include "include/os/rsd_os.h"
 int32_t asm_add(int32_t a, int32_t b);
 
 
 int main(void){
     sys_tick_init(get_sys_clock_hz());
-    // irq_init();
-    // irq_register(13, isr_io_bank0);
+    irq_init();
+    irq_register(IO_IRQ_BANK0_NUM, isr_io_bank0);
 
-    // (*(volatile uint32_t*)0xE000E200u) = (1u << 13);
-
+    nvic_set_pending(IO_IRQ_BANK0_NUM);
+    
     gpio_enable_out(16);
     gpio_enable_out(17);
     if (asm_add(5, 5) > 9){
