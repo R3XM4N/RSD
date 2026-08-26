@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /// Base then offset for specific ones
-#define RESETS_BASE     0x4000C000
+#define RESETS_BASE     0x40020000u
 #define RESETS_RESET    (*(volatile uint32_t*)(RESETS_BASE + 0x0)) // bits in a row of peripheral reset control
 #define RESETS_DONE     (*(volatile uint32_t*)(RESETS_BASE + 0x8)) // bits in a row of peripheral read reset state (out of reset?)
 

@@ -1,3 +1,3 @@
 cd build
-picotool load -x rsd_pico_one.uf2 
+picotool load -x rsd_pico2w.uf2 
 cd ..
