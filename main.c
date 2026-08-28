@@ -15,7 +15,7 @@ void taskA(void){
         delay_ms(200);
         gpio_clear(16);
         delay_ms(200);
-        yield();
+        // yield();
     }
 }
 
@@ -25,7 +25,7 @@ void taskB(void){
         delay_ms(500);
         gpio_clear(17);
         delay_ms(500);
-        yield();
+        // yield();
     }
 }
 
@@ -35,7 +35,7 @@ void taskC(void){
         delay_ms(350);
         gpio_clear(13);
         delay_ms(350);
-        yield();
+        // yield();
     }
 }
 

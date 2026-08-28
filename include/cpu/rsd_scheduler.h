@@ -12,4 +12,6 @@ void task_pick_next(void);
 void yield(void);
 void start_scheduler(void);
 
+void isr_pendsv(void);
+
 #endif

@@ -1,5 +1,7 @@
 #include "../../include/interrupt/rsd_sys_tick.h"
 
+#include "../../include/cpu/rsd_scheduler.h"
+
 static volatile uint32_t ms_ticks = 0;
 
 void sys_tick_init(uint32_t cpu_hz){
@@ -18,6 +20,7 @@ void delay_ms(uint32_t ms){
 
 void isr_systick(void){
     ms_ticks++;
+    yield();
 }
 
 // void SysTick_Handler(void){
