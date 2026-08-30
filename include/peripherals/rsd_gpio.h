@@ -10,6 +10,10 @@
 #define GPIO_OE_SET     (*(volatile uint32_t*)(SIO_BASE + 0x38))
 #define GPIO_OE_CLR     (*(volatile uint32_t*)(SIO_BASE + 0x40))
 
+#define PADS_BANK0_BASE      0x40038000u
+#define PADS_OFFSET(n)       (0x04u + (n) * 4u)
+#define PADS_GPIO(n)         (PADS_BANK0_BASE + PADS_OFFSET(n))
+
 /// @brief Sets the pin into a gpio (having 0/1 logic only)
 /// @param gpio_pin Identifier of the desired PIN
 void gpio_enable_out(const uint8_t gpio_pin);

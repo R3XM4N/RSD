@@ -4,9 +4,6 @@
 #include "../../include/peripherals/rsd_pin.h"
 #include "../../include/interrupt/rsd_interrupt.h"
 
-#define PADS_BANK0_BASE      0x40038000u
-#define PADS_OFFSET(n)       (0x04u + (n) * 4u)
-#define PADS_GPIO(n)         (PADS_BANK0_BASE + PADS_OFFSET(n))
 #define PADS_GPIO_CLR(n)     (PADS_BANK0_BASE + 0x3000u + PADS_OFFSET(n)) // atomic clear alias
 #define PADS_GPIO_SET(n)     (PADS_BANK0_BASE + 0x2000u + PADS_OFFSET(n)) // atomic set alias
 

@@ -21,6 +21,9 @@ add_executable(
     source/os/rsd_os.c
     source/cpu/rsd_scheduler.s
     source/cpu/rsd_scheduler.c
+    source/peripherals/rsd_i2c.c
+    source/module/ssd1306.c
+    source/os/rsd_system.c
 )
 
 pico_add_extra_outputs(rsd_pico2w)
