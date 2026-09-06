@@ -24,6 +24,7 @@ add_executable(
     source/peripherals/rsd_i2c.c
     source/module/ssd1306.c
     source/os/rsd_system.c
+    source/peripherals/rsd_pin.c
 )
 
 pico_add_extra_outputs(rsd_pico2w)

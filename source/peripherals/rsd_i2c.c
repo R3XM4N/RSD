@@ -1,73 +1,131 @@
 #include "../../include/peripherals/rsd_i2c.h"
 
+#include <stddef.h>
+
 #include "../../include/peripherals/rsd_pin.h"
 #include "../../include/peripherals/rsd_gpio.h"
 #include "../../include/peripherals/rsd_reset.h"
 #include "../../include/peripherals/rsd_raw_clock.h"
-#include "../../include/interrupt/rsd_sys_tick.h"
 
-#define I2C0_BASE               0x40090000u
-#define I2C0_IC_CON             (*(volatile uint32_t*)(I2C0_BASE + 0x00)) // Control
-#define I2C0_IC_TAR             (*(volatile uint32_t*)(I2C0_BASE + 0x04)) // Target
-#define I2C0_IC_DATA_CMD        (*(volatile uint32_t*)(I2C0_BASE + 0x10)) // rx/tx data buffer/command
-#define I2C0_IC_SS_SCL_HCNT     (*(volatile uint32_t*)(I2C0_BASE + 0x14)) // Standard s[eed scl high]
-#define I2C0_IC_SS_SCL_LCNT     (*(volatile uint32_t*)(I2C0_BASE + 0x18)) // Standard s[eed scl low
-#define I2C0_IC_CLR_TX_ABRT     (*(volatile uint32_t*)(I2C0_BASE + 0x54)) // Tx abort interrupt
-#define I2C0_IC_ENABLE          (*(volatile uint32_t*)(I2C0_BASE + 0x6C)) // Enable reg
-#define I2C0_IC_STATUS          (*(volatile uint32_t*)(I2C0_BASE + 0x70)) // stat
-#define I2C0_IC_TX_ABRT_SOURCE  (*(volatile uint32_t*)(I2C0_BASE + 0x80)) // trasnmit abort
-
-#define I2C1_BASE               0x40098000u
-#define I2C1_IC_CON             (*(volatile uint32_t*)(I2C1_BASE + 0x00)) // Control
-#define I2C1_IC_TAR             (*(volatile uint32_t*)(I2C1_BASE + 0x04)) // Target
-#define I2C1_IC_DATA_CMD        (*(volatile uint32_t*)(I2C1_BASE + 0x10)) // rx/tx data buffer/command
-#define I2C1_IC_SS_SCL_HCNT     (*(volatile uint32_t*)(I2C1_BASE + 0x14)) // Standard s[eed scl high]
-#define I2C1_IC_SS_SCL_LCNT     (*(volatile uint32_t*)(I2C1_BASE + 0x18)) // Standard s[eed scl low
-#define I2C1_IC_CLR_TX_ABRT     (*(volatile uint32_t*)(I2C1_BASE + 0x54)) // Tx abort interrupt
-#define I2C1_IC_ENABLE          (*(volatile uint32_t*)(I2C1_BASE + 0x6C)) // Enable reg
-#define I2C1_IC_STATUS          (*(volatile uint32_t*)(I2C1_BASE + 0x70)) // stat
-#define I2C1_IC_TX_ABRT_SOURCE  (*(volatile uint32_t*)(I2C1_BASE + 0x80)) // trasnmit abort
-
-#define GPIO_FUNC_I2C 3
-
-void i2c0_init(const uint8_t sda_pin, const uint8_t scl_pin, const uint32_t baud_rate_hz){
-    reset_await(26);
-    reset_await(5);
-    reset_await(6);
-    gpio_pad_enable(sda_pin);
-    gpio_pad_enable(scl_pin);
-    volatile uint32_t *sda_pad = (volatile uint32_t*)PADS_GPIO(sda_pin);
-    volatile uint32_t *scl_pad = (volatile uint32_t*)PADS_GPIO(scl_pin);
-    *sda_pad |= (1u << 3); // PUE
-    *scl_pad |= (1u << 3); // PUE
-    (*(volatile uint32_t*)(IO_BANK0_BASE + sda_pin * 8 + 4)) = GPIO_FUNC_I2C;
-    (*(volatile uint32_t*)(IO_BANK0_BASE + scl_pin * 8 + 4)) = GPIO_FUNC_I2C;
-    I2C0_IC_ENABLE = 0;
-
-    I2C0_IC_CON = (1u << 0)  // master mode
-                | (1u << 1)  // speed = standard (01)
-                | (1u << 5)  // restart enable
-                | (1u << 6); // slave disabled
-
-    uint32_t period = get_sys_clock_hz() / baud_rate_hz;
-    I2C0_IC_SS_SCL_HCNT = (period / 2) - 3;
-    I2C0_IC_SS_SCL_LCNT = (period / 2) - 1;
-    I2C0_IC_ENABLE = 1;
+static uint32_t i2c_base(const i2c_instance_t instance){
+    return (instance == I2C_INSTANCE_0) ? 0x40090000u : 0x40098000u;
+}
+static uint32_t i2c_reset_bit(const i2c_instance_t instance){
+    return (instance == I2C_INSTANCE_0) ? 4u : 5u;
 }
 
-void i2c0_write_blocking(const uint8_t target_7b, const uint8_t* data, const uint32_t data_byte_count, uint8_t send_stop){
-    I2C0_IC_ENABLE = 0;
-    I2C0_IC_TAR = target_7b;
-    I2C0_IC_ENABLE = 1;
+// IC not I2C to make crossreferencing via datasheet sensible
+#define OFF_IC_CON                      0x00u
+#define OFF_IC_TAR                      0x04u
+#define OFF_IC_DATA_CMD                 0x10u
+#define OFF_IC_SS_SCL_HCNT              0x14u // Standard mode scl high period
+#define OFF_IC_SS_SCL_LCNT              0x18u // Standard mode scl low period
+#define OFF_IC_RAW_INTR_STAT            0x34u // interrupt flags
+#define OFF_IC_RX_TL                    0x38u // rx fifo treashold
+#define OFF_IC_TX_TL                    0x3Cu // tx fifo treshold
+#define OFF_IC_CLR_TX_ABRT              0x54u // read results in clear of tx_abrt flag
+#define OFF_IC_ENABLE                   0x6Cu
+#define OFF_IC_STATUS                   0x70u
+#define OFF_IC_ENABLE_STATUS            0x9Cu
+
+#define IC_STATUS_TFNF_BITS             (1u << 1) // trasmit fifo not full bit
+#define IC_STATUS_TFE_BITS              (1u << 2) // transmit fifo empty? bit
+#define IC_STATUS_MST_ACTIVITY_BITS     (1u << 5) // state of the i2c master (0-idle 1-active)
+#define IC_DATA_CMD_STOP_BIT            (1u << 9) // end transfer bit flag
+#define IC_RAW_INTR_STAT_TX_ABRT_BITS   (1u << 6) // 1 if transport aborted (nack etc)
+
+#define IO_BANK0_FUNCSEL_I2C 3u
+
+static uint8_t current_target[2] = {0xFF, 0xFF}; // target for each i2c lane {i2c0_tar, i2c1_tar}
+
+/// @brief Safe repoint of target on chosen i2c instance because device must be fully disabled beforehand
+/// @param instance the desired instance of i2c
+/// @param target_7b_addr target device adresss
+static void i2c_set_target(const i2c_instance_t instance, const uint8_t target_7b_addr){
+    if (target_7b_addr == current_target[instance]){
+        return;
+    }
+
+    uint32_t desired_i2c = i2c_base(instance);
+    
+    REG(desired_i2c, OFF_IC_ENABLE) = 0;
+    while (REG(desired_i2c, OFF_IC_ENABLE_STATUS) & 1u){ } // await true disable 
+
+    REG(desired_i2c, OFF_IC_TAR) = target_7b_addr;
+    REG(desired_i2c, OFF_IC_ENABLE) = 1;
+    while (!(REG(desired_i2c, OFF_IC_ENABLE_STATUS) & 1u)){  } // await true enable
+
+    current_target[instance] = target_7b_addr;
+}
+
+void i2c_init(const i2c_instance_t instance, const uint8_t sda_pin, const uint8_t scl_pin, const uint32_t baud_rate_hz){
+    uint32_t desired_i2c = i2c_base(instance); //base regsiter of the desired i2c isntance
+    reset_await(6);
+    reset_await(9);
+    reset_await(i2c_reset_bit(instance)); // the only i2c sole await
+    gpio_pad_enable(sda_pin);
+    gpio_pad_enable(scl_pin);
+
+    volatile uint32_t* sda_pad = (volatile uint32_t*)PADS_GPIO(sda_pin);
+    volatile uint32_t* scl_pad = (volatile uint32_t*)PADS_GPIO(scl_pin);
+    *sda_pad |= (1u << 3); // internal pull-up en
+    *scl_pad |= (1u << 3);
+    gpio_set_funcsel(sda_pin, IO_BANK0_FUNCSEL_I2C);
+    gpio_set_funcsel(scl_pin, IO_BANK0_FUNCSEL_I2C);
+
+    REG(desired_i2c, OFF_IC_ENABLE) = 0;
+    REG(desired_i2c, OFF_IC_CON) =
+        (1u << 0) | // master
+        (1u << 1) | // single just 100khz speed for now
+        (1u << 5) | // restart en
+        (1u << 6) | // slave disable
+        (1u << 8);  // tc empty cntrl
+
+    uint32_t period = get_sys_clock_hz() / baud_rate_hz;
+    REG(desired_i2c, OFF_IC_SS_SCL_HCNT) = (period * 2u) / 5u;
+    REG(desired_i2c, OFF_IC_SS_SCL_LCNT) = period - REG(desired_i2c, OFF_IC_SS_SCL_HCNT);
+    REG(desired_i2c, OFF_IC_RX_TL) = 0;
+    REG(desired_i2c, OFF_IC_TX_TL) = 0;
+    current_target[instance] = 0xFF; // force first write to set the target
+
+    REG(desired_i2c, OFF_IC_ENABLE) = 1;
+    while (!(REG(desired_i2c, OFF_IC_ENABLE_STATUS) & 1u)){  } // await true enable
+}
+
+uint8_t i2c_write_blocking(const i2c_instance_t inst, const uint8_t target_7b, const uint8_t* data, const uint32_t data_byte_count, const uint8_t send_stop){
+    uint32_t i2c_c_base = i2c_base(inst);
+    i2c_set_target(inst, target_7b);
 
     for (uint32_t i = 0; i < data_byte_count; i++){
-        while (!(I2C0_IC_STATUS & (1u << 1))){} // we waaaaaaaaait
-        
+        while (!(REG(i2c_c_base, OFF_IC_STATUS) & IC_STATUS_TFNF_BITS)){  } // await room in fifo
         uint32_t cmd = data[i];
         if (send_stop && (i == data_byte_count - 1)){
-            cmd |= (1u << 9); // stop last byte lmao
+            cmd |= IC_DATA_CMD_STOP_BIT;
         }
-        I2C0_IC_DATA_CMD = cmd;
+        REG(i2c_c_base, OFF_IC_DATA_CMD) = cmd;
     }
-    while (I2C0_IC_STATUS & (1u << 0)){};// await clear bus activity
+
+    while (!(REG(i2c_c_base, OFF_IC_STATUS) & IC_STATUS_TFE_BITS) || (REG(i2c_c_base, OFF_IC_STATUS) & IC_STATUS_MST_ACTIVITY_BITS)){ } // Wait for fifo none and idle aka full finish
+    if (REG(i2c_c_base, OFF_IC_RAW_INTR_STAT) & IC_RAW_INTR_STAT_TX_ABRT_BITS){
+        (void)REG(i2c_c_base, OFF_IC_CLR_TX_ABRT); //clear abort flag
+        return 0;
+    }
+    return 1;
+}
+
+uint8_t i2c_addr_sweep(const i2c_instance_t instance){
+    for (uint8_t addr = 0x08; addr < 0x78; addr++){
+        uint8_t probe = 0x00;
+        if (i2c_write_blocking(instance, addr, &probe, 1, 1)) {
+            return addr;
+        }
+    }
+    return 0xFF; // NONE FOUND invalid addrs returns
+}
+
+uint8_t i2c_get_active(){
+    uint8_t states = 0;
+    if (0) { states |= (1u << 0);} // state of instance 0
+    if (0) { states |= (1u << 1);} // state of instance 1    
+    return states;
 }

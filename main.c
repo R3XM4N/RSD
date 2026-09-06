@@ -9,6 +9,9 @@
 #include "include/os/rsd_os.h"
 #include "include/os/rsd_system.h"
 
+#include "include/peripherals/rsd_i2c.h"
+#include "include/module/ssd1306.h"
+
 int32_t asm_add(int32_t a, int32_t b);
 volatile static uint8_t running = 0;
 
@@ -32,14 +35,21 @@ void taskB(void){
     }
 }
 
+
 void taskC(void){
-    while (1){
-        gpio_write(SYS_MSG_LED_2);
-        delay_ms(350);
-        gpio_clear(SYS_MSG_LED_2);
-        delay_ms(350);
-        // yield();
-    }
+    // i2c0_init(20, 21, 100000);
+    // uint8_t addr = i2c0_scan();
+    // if (addr == 0xFF) {
+    //     // nothing ACKed - bus/wiring/power problem, not display config
+    //     while(1){ gpio_write(SYS_MSG_LED_2); delay_ms(150); gpio_clear(SYS_MSG_LED_2); delay_ms(150); }
+    // }
+    // uint8_t ok = ssd1306_full_on_test(); // 0xA5 override - should force solid white
+    // if (!ok) {
+    //     while(1){ gpio_write(SYS_MSG_LED_2); } // solid on = a command NACKed
+    // }
+    // while(1){}
+    i2c_init(0, 20,21,100000);
+    ssd1306_full_on_test();
 }
 
 void ini_sys_base(){
