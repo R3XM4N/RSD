@@ -34,8 +34,6 @@ static uint32_t i2c_reset_bit(const i2c_instance_t instance){
 #define IC_DATA_CMD_STOP_BIT            (1u << 9) // end transfer bit flag
 #define IC_RAW_INTR_STAT_TX_ABRT_BITS   (1u << 6) // 1 if transport aborted (nack etc)
 
-#define IO_BANK0_FUNCSEL_I2C 3u
-
 static uint8_t current_target[2] = {0xFF, 0xFF}; // target for each i2c lane {i2c0_tar, i2c1_tar}
 
 /// @brief Safe repoint of target on chosen i2c instance because device must be fully disabled beforehand
@@ -70,8 +68,8 @@ void i2c_init(const i2c_instance_t instance, const uint8_t sda_pin, const uint8_
     volatile uint32_t* scl_pad = (volatile uint32_t*)PADS_GPIO(scl_pin);
     *sda_pad |= (1u << 3); // internal pull-up en
     *scl_pad |= (1u << 3);
-    gpio_set_funcsel(sda_pin, IO_BANK0_FUNCSEL_I2C);
-    gpio_set_funcsel(scl_pin, IO_BANK0_FUNCSEL_I2C);
+    gpio_set_funcsel(sda_pin, I2C_FUNCSEL);
+    gpio_set_funcsel(scl_pin, I2C_FUNCSEL);
 
     REG(desired_i2c, OFF_IC_ENABLE) = 0;
     REG(desired_i2c, OFF_IC_CON) =

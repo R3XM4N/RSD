@@ -19,9 +19,9 @@ void gpio_pad_enable(const uint8_t gpio_pin){
 
 void gpio_enable_out(const uint8_t gpio_pin){
     if ((gpio_pin < 23) || ((gpio_pin > 24) && (gpio_pin < 29))){
-        reset_await(6); // IO_BANK0 out of reset that has moved from 5 to 6 on pico 2040->2350
+        reset_await(6);
         gpio_pad_enable(gpio_pin);
-        (*(volatile uint32_t*)(IO_BANK0_BASE + gpio_pin * 8 + 4)) = 5;
+        gpio_set_funcsel(gpio_pin, GPIO_FUNCSEL);
         GPIO_OE_SET = (1u << gpio_pin);
     }
 }
@@ -51,7 +51,7 @@ void private_gpio_pullup_en(const uint8_t gpio_pin){
 
 void gpio_enable_fall_irq(const uint8_t gpio_pin){
     reset_await(6);
-    (*(volatile uint32_t*)(IO_BANK0_BASE + (gpio_pin * 8) + 4)) = 5; //sio func 5
+    gpio_set_funcsel(gpio_pin, GPIO_FUNCSEL);
     private_gpio_pullup_en(gpio_pin);
     GPIO_OE_CLR = (1u << gpio_pin);
 
