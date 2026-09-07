@@ -49,7 +49,7 @@ void taskC(void){
     // }
     // while(1){}
     i2c_init(0, 20,21,100000);
-    ssd1306_full_on_test();
+    ssd1306_fill_white();
 }
 
 void ini_sys_base(){
