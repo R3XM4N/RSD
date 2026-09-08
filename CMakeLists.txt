@@ -25,6 +25,7 @@ add_executable(
     source/module/ssd1306.c
     source/os/rsd_system.c
     source/peripherals/rsd_pin.c
+    source/os/font/rsd_font_base.c
 )
 
 pico_add_extra_outputs(rsd_pico2w)
