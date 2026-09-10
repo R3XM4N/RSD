@@ -25,6 +25,8 @@ void i2c_init(const i2c_instance_t instance, const uint8_t sda_pin, const uint8_
 /// @return returns based on the events in the line (error codes etc) returns 1 on all ack 0 on nack
 uint8_t i2c_write_blocking(const i2c_instance_t instance, const  uint8_t target_7b, const uint8_t* data, const uint32_t data_byte_count, const uint8_t send_stop);
 
+uint8_t i2c_read_blocking(const i2c_instance_t instance, const uint8_t target_7b, uint8_t* out, const uint32_t len);
+
 /// @brief sweeps 7bit adress range until finds a valid target
 /// @param instance which i2c instance is to be used
 /// @return The FIRST valid adress it finds
@@ -33,5 +35,10 @@ uint8_t i2c_addr_sweep(const i2c_instance_t instance);
 /// @brief checks and returns which i2c instances are active ina single byte based on byte position 
 /// @return returns bits of a i2c state (bit 0 = i2c0 state, bit 1 = i2c1 state)
 uint8_t i2c_get_active();
+
+inline uint8_t i2c_write_then_read(const i2c_instance_t instance, const uint8_t target_7b, const uint8_t* reg_addr_bytes, uint32_t addr_len, uint8_t* out, uint32_t read_len){
+    if (!i2c_write_blocking(instance, target_7b, reg_addr_bytes, addr_len, 0)) return 0; // NO stop
+    return i2c_read_blocking(instance, target_7b, out, read_len); // hardware auto-RESTARTs since IC_RESTART_EN is already set in your IC_CON
+}
 
 #endif

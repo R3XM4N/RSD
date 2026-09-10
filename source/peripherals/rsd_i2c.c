@@ -20,6 +20,8 @@ static uint32_t i2c_reset_bit(const i2c_instance_t instance){
 #define OFF_IC_DATA_CMD                 0x10u
 #define OFF_IC_SS_SCL_HCNT              0x14u // Standard mode scl high period
 #define OFF_IC_SS_SCL_LCNT              0x18u // Standard mode scl low period
+#define OFF_IC_FS_SCL_HCNT              0x1Cu // fast-mode scl high period
+#define OFF_IC_FS_SCL_LCNT              0x20u // fast-mode scl low period
 #define OFF_IC_RAW_INTR_STAT            0x34u // interrupt flags
 #define OFF_IC_RX_TL                    0x38u // rx fifo treashold
 #define OFF_IC_TX_TL                    0x3Cu // tx fifo treshold
@@ -33,6 +35,9 @@ static uint32_t i2c_reset_bit(const i2c_instance_t instance){
 #define IC_STATUS_MST_ACTIVITY_BITS     (1u << 5) // state of the i2c master (0-idle 1-active)
 #define IC_DATA_CMD_STOP_BIT            (1u << 9) // end transfer bit flag
 #define IC_RAW_INTR_STAT_TX_ABRT_BITS   (1u << 6) // 1 if transport aborted (nack etc)
+
+#define IC_STATUS_RFNE_BITS             (1u << 3) // receive FIFO not empty
+#define IC_DATA_CMD_READ_BIT            (1u << 8)
 
 static uint8_t current_target[2] = {0xFF, 0xFF}; // target for each i2c lane {i2c0_tar, i2c1_tar}
 
@@ -72,16 +77,28 @@ void i2c_init(const i2c_instance_t instance, const uint8_t sda_pin, const uint8_
     gpio_set_funcsel(scl_pin, I2C_FUNCSEL);
 
     REG(desired_i2c, OFF_IC_ENABLE) = 0;
-    REG(desired_i2c, OFF_IC_CON) =
-        (1u << 0) | // master
-        (1u << 1) | // single just 100khz speed for now
-        (1u << 5) | // restart en
-        (1u << 6) | // slave disable
-        (1u << 8);  // tc empty cntrl
+    // REG(desired_i2c, OFF_IC_CON) =
+    //     (1u << 0) | // master
+    //     (1u << 1) | // single just 100khz speed for now
+    //     (1u << 5) | // restart en
+    //     (1u << 6) | // slave disable
+    //     (1u << 8);  // tc empty cntrl
 
+    uint32_t con = (1u<<0) | (1u<<5) | (1u<<6) | (1u<<8); // master, restart, slave_dis, tx_empty_ctrl
     uint32_t period = get_sys_clock_hz() / baud_rate_hz;
-    REG(desired_i2c, OFF_IC_SS_SCL_HCNT) = (period * 2u) / 5u;
-    REG(desired_i2c, OFF_IC_SS_SCL_LCNT) = period - REG(desired_i2c, OFF_IC_SS_SCL_HCNT);
+    if (baud_rate_hz <= 100000){
+        con |= (1u << 1); // SPEED = standard
+        REG(desired_i2c, OFF_IC_SS_SCL_HCNT) = (period * 2u) / 5u;
+        REG(desired_i2c, OFF_IC_SS_SCL_LCNT) = period - REG(desired_i2c, OFF_IC_SS_SCL_HCNT);
+    }
+    else if (baud_rate_hz <= 1000000){
+        con |= (2u << 1); // SPEED = fast (covers both 400kHz fast-mode and up to 1MHz fast-mode-plus)
+        REG(desired_i2c, OFF_IC_FS_SCL_HCNT) = (period * 2u) / 5u;
+        REG(desired_i2c, OFF_IC_FS_SCL_LCNT) = period - REG(desired_i2c, OFF_IC_FS_SCL_HCNT);
+    }
+    else{return;} // No major error reporting yet
+
+    REG(desired_i2c, OFF_IC_CON) = con;
     REG(desired_i2c, OFF_IC_RX_TL) = 0;
     REG(desired_i2c, OFF_IC_TX_TL) = 0;
     current_target[instance] = 0xFF; // force first write to set the target
@@ -126,4 +143,28 @@ uint8_t i2c_get_active(){
     if (0) { states |= (1u << 0);} // state of instance 0
     if (0) { states |= (1u << 1);} // state of instance 1    
     return states;
+}
+
+uint8_t i2c_read_blocking(const i2c_instance_t instance, const uint8_t target_7b, uint8_t* out, const uint32_t len){
+    uint32_t base = i2c_base(instance);
+    i2c_set_target(instance, target_7b);
+
+    for (uint32_t i = 0; i < len; i++){
+        while (!(REG(base, OFF_IC_STATUS) & IC_STATUS_TFNF_BITS)){ } // room to queue requests
+
+        uint32_t cmd = IC_DATA_CMD_READ_BIT;
+        if (i == len - 1) cmd |= IC_DATA_CMD_STOP_BIT;
+        REG(base, OFF_IC_DATA_CMD) = cmd; // request a byte
+    }
+
+    for (uint32_t i = 0; i < len; i++){
+        while (!(REG(base, OFF_IC_STATUS) & IC_STATUS_RFNE_BITS)){ } // await data
+        out[i] = (uint8_t)REG(base, OFF_IC_DATA_CMD); // reading this register pulls from RX FIFO
+    }
+
+    if (REG(base, OFF_IC_RAW_INTR_STAT) & IC_RAW_INTR_STAT_TX_ABRT_BITS){
+        (void)REG(base, OFF_IC_CLR_TX_ABRT);
+        return 0;
+    }
+    return 1;
 }

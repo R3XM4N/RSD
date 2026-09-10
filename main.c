@@ -50,6 +50,13 @@ void taskC(void){
     // while(1){}
     i2c_init(0, 20,21,100000);
     ssd1306_fill_white();
+    while (1){
+        char test_txt[] = "I am in pain. This has taken me the entire ass fucking day to make.";
+        ssd1306_write_str(test_txt, sizeof(test_txt) / sizeof(char), 1);
+        ssd1306_redraw();
+        delay_ms(4000);
+    }
+    
 }
 
 void ini_sys_base(){

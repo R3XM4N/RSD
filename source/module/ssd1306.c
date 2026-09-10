@@ -216,8 +216,7 @@ uint8_t ssd1306_fill_white(void){
     // ssd1306_write_char('l');
     // ssd1306_write_char('l');
     // ssd1306_write_char('.');
-    char test_txt[] = "I am in pain. This has taken me the entire ass fucking day to make.";
-    ssd1306_write_str(test_txt, sizeof(test_txt) / sizeof(char), 1);
+    
     ok &= ssd1306_write_whole();
 
     // static uint8_t buf[1 + 128 * 8];
@@ -232,3 +231,6 @@ uint8_t ssd1306_fill_white(void){
     return ok;
 }
 
+uint8_t ssd1306_redraw(){
+    return ssd1306_write_whole();
+}

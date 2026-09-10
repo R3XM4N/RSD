@@ -12,4 +12,8 @@ uint8_t ssd1306_full_on_test(void);
 // inits and fills every pixel white/full
 uint8_t ssd1306_fill_white(void);
 
+//test
+void ssd1306_write_str(const char* str, const uint16_t str_length, const uint8_t terminator_flag);
+
+uint8_t ssd1306_redraw();
 #endif
